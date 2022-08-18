@@ -1,37 +1,47 @@
 const fs = require("fs");
 
-function example(hb, fontBlob, text) {
-  var blob = hb.createBlob(fontBlob);
-  var face = hb.createFace(blob, 0);
-  // console.log(face.getAxisInfos());
-  var font = hb.createFont(face);
-  // font.setVariations({ wdth: 200, wght: 700 });
-  font.setScale(1000, 1000); // Optional, if not given will be in font upem
+function example(hb, fontBlob, text, metricsEnabled) {
+  const blob = hb.createBlob(fontBlob);
+  const face = hb.createFace(blob, 0);
+  const font = hb.createFont(face);
+  console.log(font);
+  font.setScale(46, 46); // Optional, if not given will be in font upem
 
-  var buffer = hb.createBuffer();
+  const buffer = hb.createBuffer();
   buffer.addText(text);
   buffer.guessSegmentProperties();
+
   // buffer.setDirection('ltr'); // optional as can be set by guessSegmentProperties also
+
   hb.shape(font, buffer); // features are not supported yet
-  var result = buffer.json(font);
+  const result = buffer.json(text); /// ???????
 
   // returns glyphs paths, totally optional
   var glyphs = {};
   var pathTags = [];
   
-  result.forEach(function (x) {
+  let cursorX = 0, cursorY = 0;
+  result.forEach(function (glyph) {
 
-    const d = font.glyphToPath(x.g);
-    const pathTag = getPathTag(d, { fill: 'black', stroke: 'none' });
+    const xOffSet = glyph.dx;
+    const yOffSet = glyph.dy;
+    const xAdvance = glyph.ax;
+    const yAdvance = glyph.ay;
+    const d = font.glyphToPath(glyph.g);
+    const pathTag = getPathTag(d, cursorX + xOffSet, cursorY + yOffSet);
+
     pathTags.push({
       pathTag,
     })
 
-    if (glyphs[x.g]) return;
-    glyphs[x.g] = {
-      name: font.glyphName(x.g),
-      path: font.glyphToPath(x.g),
-      json: font.glyphToJson(x.g)
+    cursorX += xAdvance;
+    cursorY += yAdvance;
+
+    if (glyphs[glyph.g]) return;
+    glyphs[glyph.g] = {
+      name: font.glyphName(glyph.g),
+      path: font.glyphToPath(glyph.g),
+      json: font.glyphToJson(glyph.g)
     };
   });
 
@@ -51,7 +61,7 @@ function example(hb, fontBlob, text) {
 }
 
 function getWordSVG(pathTags) {
-  let wordSVG = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0" y="0" width="100%" height="100%" style="overflow:visible">`
+  let wordSVG = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="130" y="30" width="100%" height="100%" style="overflow:visible">`
   pathTags.forEach((p) => {
     wordSVG += p.pathTag
   })
@@ -69,8 +79,12 @@ function createSVGFile(wordSVG) {
   logger.end();
 }
 
-function getPathTag(d, attributes = {}) {
-  return `<path d="${d}"/>`
+function getPathTag(d, x, y) {
+  return `<path transform="translate(${x} ${y})" d="${d}"/>`
+}
+
+function getCharBound(glyph, startPt) {
+
 }
 
 function write(file, data) {

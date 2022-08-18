@@ -78,6 +78,14 @@ function hbjs(instance) {
         var table_string = heapu8.subarray(blobptr, blobptr+length);
         return table_string;
       },
+
+      setUpem: function(upem) {
+        exports.hb_face_set_upem(ptr, upem);
+      },
+
+      getUpem: function() {
+        return exports.hb_face_get_upem(ptr);
+      },
       /**
        * Return variation axis infos
        */
@@ -169,6 +177,28 @@ function hbjs(instance) {
       setScale: function (xScale, yScale) {
         exports.hb_font_set_scale(ptr, xScale, yScale);
       },
+
+      /**
+      * Set the font's size, affecting the position values returned from
+      * shaping.
+      * @param {number} fontSize Units to increase in the em.
+      **/
+      setFontSize: function(fontSize) {
+        exports.hb_font_set_ptem(ptr, fontSize);
+      },
+
+      setFontSizeV2: function(fontSize) {
+        exports.hb_font_set_ppem(ptr, fontSize);
+      },
+
+      fontChanged: function() {
+        exports.hb_ft_font_changed(ptr);
+      },
+
+      getFont: function() {
+        return exports.hb_font_get_ptem(ptr);
+      },
+
       /**
        * Set the font's variations.
        * @param {object} variations Dictionary of variations to set
@@ -309,12 +339,12 @@ function hbjs(instance) {
       *   - dy: Y displacement (adjustment in Y dimension when painting this glyph)
       *   - flags: Glyph flags like `HB_GLYPH_FLAG_UNSAFE_TO_BREAK` (0x1)
       **/
-      json: function () {
+      json: function (text) {
         var length = exports.hb_buffer_get_length(ptr);
         var result = [];
         var infosPtr = exports.hb_buffer_get_glyph_infos(ptr, 0);
         var infosPtr32 = infosPtr / 4;
-        var positionsPtr32 = exports.hb_buffer_get_glyph_positions(ptr, 0) / 4;
+        var positionsPtr32 = exports.hb_buffer_get_glyph_positions(ptr, length) / 4;
         var infos = heapu32.subarray(infosPtr32, infosPtr32 + 5 * length);
         var positions = heapi32.subarray(positionsPtr32, positionsPtr32 + 5 * length);
         for (var i = 0; i < length; ++i) {
