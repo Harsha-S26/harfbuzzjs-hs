@@ -52,12 +52,13 @@ function example(hb, fontBlob, text, metricsEnabled) {
   createSVGFile(wordSVG);
 
   write("result.json", finalResult);
+  var unicodes = face.collectUnicodes()
 
   buffer.destroy();
   font.destroy();
   face.destroy();
   blob.destroy();
-  return { shape: result, glyphs: glyphs };
+  return { shape: result, glyphs: glyphs, unicodes: unicodes };
 }
 
 function getWordSVG(pathTags) {

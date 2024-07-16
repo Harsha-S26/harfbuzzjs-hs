@@ -7,7 +7,7 @@ on:
     branches: [ "main" ]
 
 env:
-  EM_VERSION: 3.1.16
+  EM_VERSION: 3.1.56
   EM_CACHE_FOLDER: 'emsdk-cache'
 
 jobs:
@@ -28,7 +28,7 @@ jobs:
           path: ${{env.EM_CACHE_FOLDER}}
           key: ${{env.EM_VERSION}}-${{runner.os}}
       - name: Setup Emscripten
-        uses: mymindstorm/setup-emsdk@v11
+        uses: mymindstorm/setup-emsdk@v14
         with:
           version: ${{env.EM_VERSION}}
           actions-cache-folder: ${{env.EM_CACHE_FOLDER}}
@@ -39,6 +39,10 @@ jobs:
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
+      - name: NPM install
+        run: npm install
+      - name: Run tests
+        run: npm test
       - name: Test hb.wasm
         run: node examples/hbjs.example.node.js
       - name: Test hb-subset.wasm
